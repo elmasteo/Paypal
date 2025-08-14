@@ -10,26 +10,32 @@
     <body>
         <div id="paypal-button-container"></div>
     <script>
-paypal.Buttons({
-  createOrder: function(data, actions) {
-    return fetch("/.netlify/functions/create-nuvei-order", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount: 100, currency: "USD" })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.redirectUrl) {
-        //window.location.href = data.redirectUrl; // Redirige a Nuvei/PayPal
-        //return ; // No devuelvas nada a PayPal
-        return data.redirectUrl;
+    paypal.Buttons({
+      createOrder: function(data, actions) {
+        return fetch("/.netlify/functions/create-nuvei-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount: 100, currency: "USD" })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.redirectUrl) {
+            // Extraer solo el token
+            const url = new URL(data.redirectUrl);
+            const token = url.searchParams.get("token"); // EC-XXXXX
+            if (!token) throw new Error("No se obtuvo token de Nuvei");
+            return token; // PayPal espera solo el token, no la URL completa
+          }
+          throw new Error("No se obtuvo redirectUrl de Nuvei");
+        });
+      },
+      onApprove: function(data, actions) {
+        // Aquí podrías capturar la orden si lo deseas
+        return actions.order.capture().then(function(details) {
+          alert("Pago completado: " + details.id);
+        });
       }
-      throw new Error("No se obtuvo redirectUrl de Nuvei");
-    });
-  }
-}).render('#paypal-button-container');
-
-
+    }).render('#paypal-button-container');
 
     </script>
     </body>  

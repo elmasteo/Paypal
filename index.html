@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="title" content="Test Nuvei">
-    <meta name="description" content="Carrito de compras con PayPal y Nuvei">
-    <title>Carrito de Compras</title>
+    <meta name="description" content="Shopping cart with PayPal and Nuvei">
+    <title>Shopping Cart</title>
     <link rel="icon" href="https://docs.nuvei.com/wp-content/themes/manual-child/img/favicons/cropped-favicon-nuvei-32x32.png" sizes="32x32">
 
     <script src="https://www.paypal.com/sdk/js?client-id=AXsloLh0BwpApDZGmfOdWKiTxlyHi4dLQ63gpsHK1Son0cXtq657wRakklBo29Ja6XKuuih3W3YlVD0r"></script>
@@ -12,7 +12,7 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: #f4f4f9; display: flex; justify-content: center; padding: 40px 10px; }
-        .cart-container { width: 100%; max-width: 800px; background: #fff; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); overflow: hidden; padding: 20px; }
+        .cart-container { width: 100%; max-width: 800px; background: #fff; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); overflow: hidden; padding: 20px; position: relative; }
         h1 { text-align: center; margin-bottom: 20px; color: #333; }
         .cart-items { display: flex; flex-direction: column; gap: 15px; }
         .cart-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
@@ -23,6 +23,8 @@
         .item-price { font-weight: bold; color: #111; }
         .cart-summary { margin-top: 20px; display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; padding-top: 10px; border-top: 2px solid #ddd; }
         #paypal-button-container { margin-top: 30px; display: flex; justify-content: center; }
+        .lang-btn { position: absolute; top: 20px; right: 20px; background: #0070ba; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .lang-btn:hover { background: #005c99; }
         @media (max-width: 500px) {
             .cart-item { flex-direction: column; align-items: flex-start; gap: 10px; }
             .item-info { gap: 10px; }
@@ -31,25 +33,25 @@
 </head>
 <body>
     <div class="cart-container">
-        <h1>Mi Carrito de Compras</h1>
+        <button class="lang-btn" id="langToggle">ES</button>
+        <h1 data-en="My Shopping Cart" data-es="Mi Carrito de Compras">My Shopping Cart</h1>
         <div class="cart-items">
-            <!-- Cambia src por tu ruta local de imagen -->
             <div class="cart-item">
                 <div class="item-info">
-                    <img src="images/producto1.jpg" alt="Producto 1">
+                    <img src="images/producto1.jpg" alt="Product 1">
                     <div class="item-details">
-                        <strong>Producto 1</strong>
-                        <span>Cantidad: 1</span>
+                        <strong data-en="Product 1" data-es="Producto 1">Product 1</strong>
+                        <span data-en="Quantity: 1" data-es="Cantidad: 1">Quantity: 1</span>
                     </div>
                 </div>
                 <div class="item-price">$50</div>
             </div>
             <div class="cart-item">
                 <div class="item-info">
-                    <img src="images/producto2.jpg" alt="Producto 2">
+                    <img src="images/producto2.jpg" alt="Product 2">
                     <div class="item-details">
-                        <strong>Producto 2</strong>
-                        <span>Cantidad: 1</span>
+                        <strong data-en="Product 2" data-es="Producto 2">Product 2</strong>
+                        <span data-en="Quantity: 1" data-es="Cantidad: 1">Quantity: 1</span>
                     </div>
                 </div>
                 <div class="item-price">$50</div>
@@ -57,7 +59,7 @@
         </div>
 
         <div class="cart-summary">
-            <span>Total:</span>
+            <span data-en="Total:" data-es="Total:">Total:</span>
             <span>$100</span>
         </div>
 
@@ -65,6 +67,18 @@
     </div>
 
     <script>
+        // Botón de traducción
+        const langBtn = document.getElementById("langToggle");
+        let currentLang = "en";
+
+        langBtn.addEventListener("click", () => {
+            currentLang = currentLang === "en" ? "es" : "en";
+            document.querySelectorAll("[data-en]").forEach(el => {
+                el.textContent = el.getAttribute(`data-${currentLang}`);
+            });
+            langBtn.textContent = currentLang === "en" ? "ES" : "EN";
+        });
+
         // Configuración PayPal
         paypal.Buttons({
             createOrder: function(data, actions) {
@@ -78,15 +92,15 @@
                     if (data.redirectUrl) {
                         const url = new URL(data.redirectUrl);
                         const token = url.searchParams.get("token");
-                        if (!token) throw new Error("No se obtuvo token de Nuvei");
+                        if (!token) throw new Error("No token from Nuvei");
                         return token;
                     }
-                    throw new Error("No se obtuvo redirectUrl de Nuvei");
+                    throw new Error("No redirectUrl from Nuvei");
                 });
             },
             onApprove: function(data, actions) {
                 return actions.order.capture().then(function(details) {
-                    alert("Pago completado: " + details.id);
+                    alert((currentLang === "en" ? "Payment completed: " : "Pago completado: ") + details.id);
                 });
             }
         }).render('#paypal-button-container');

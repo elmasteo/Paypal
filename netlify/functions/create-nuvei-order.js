@@ -1,4 +1,4 @@
-const fetch = require("node-fetch");
+const fetch = require('node-fetch');
 const CryptoJS = require("crypto-js");
 
 export async function handler(event) {

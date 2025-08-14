@@ -13,27 +13,28 @@ export async function handler(event) {
   try {
     const { amount, currency } = JSON.parse(event.body);
 
-    // Variables de entorno (configuradas en Netlify)
+    // 🔹 Variables de entorno (configuradas en Netlify)
     const merchantId = process.env.NUVEI_MERCHANT_ID;
     const merchantSiteId = process.env.NUVEI_MERCHANT_SITE_ID;
     const merchantSecretKey = process.env.NUVEI_MERCHANT_SECRET_KEY;
 
-    // 1️⃣ Generar timestamp y clientRequestId
-    const fecha = new Date();
-    const timestamp = `${fecha.getFullYear()}${padZero(fecha.getMonth() + 1)}${padZero(fecha.getDate())}${padZero(fecha.getHours())}${padZero(fecha.getMinutes())}${padZero(fecha.getSeconds())}`;
-    const clientRequestId = timestamp; // puedes usar otro generador si prefieres
-
-    function padZero(valor) {
-      return valor.toString().padStart(2, "0");
+    // 🔹 Función para formatear con ceros
+    function padZero(v) {
+      return v.toString().padStart(2, "0");
     }
 
-    // 2️⃣ Generar checksum
-    const cadena = CryptoJS.SHA256(
-      merchantId + merchantSiteId + clientRequestId + timestamp + merchantSecretKey
-    );
-    const checksum = cadena.toString();
+    // 🔹 Generar timestamp y clientRequestId
+    const fecha = new Date();
+    const timestamp = `${fecha.getFullYear()}${padZero(fecha.getMonth() + 1)}${padZero(fecha.getDate())}${padZero(fecha.getHours())}${padZero(fecha.getMinutes())}${padZero(fecha.getSeconds())}`;
+    const clientRequestId = timestamp; // o algún UUID
 
-    // 3️⃣ Llamar a getSessionToken.do
+    // ===============================
+    // 1️⃣ Obtener sessionToken
+    // ===============================
+    const checksumSession = CryptoJS.SHA256(
+      merchantId + merchantSiteId + clientRequestId + timestamp + merchantSecretKey
+    ).toString();
+
     const tokenResp = await fetch("https://ppp-test.nuvei.com/ppp/api/v1/getSessionToken.do", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -42,7 +43,7 @@ export async function handler(event) {
         merchantSiteId,
         clientRequestId,
         timeStamp: timestamp,
-        checksum
+        checksum: checksumSession
       })
     });
 
@@ -57,20 +58,48 @@ export async function handler(event) {
 
     const sessionToken = tokenData.sessionToken;
 
-    // 4️⃣ Llamar a payment.do con el sessionToken
+    // ===============================
+    // 2️⃣ Generar checksum para payment.do
+    // ===============================
+    const checksumPayment = CryptoJS.SHA256(
+      merchantId + merchantSiteId + clientRequestId + amount.toString() + currency + timestamp + merchantSecretKey
+    ).toString();
+
+    // ===============================
+    // 3️⃣ Llamar a payment.do
+    // ===============================
     const paymentResp = await fetch("https://ppp-test.safecharge.com/ppp/api/payment.do", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        sessionToken,
         merchantId,
         merchantSiteId,
         clientRequestId,
-        currency: currency || "USD",
-        amount: amount || 100,
-        sessionToken,
+        amount,
+        currency,
+        userTokenId: "testUser123", // ⚠️ Puedes generar dinámico
+        clientUniqueId: "uniqueClient123", // ⚠️ También dinámico
         paymentOption: {
-          alternativePaymentMethod: { method: "PayPal" }
-        }
+          alternativePaymentMethod: { paymentMethod: "apmgw_expresscheckout" }
+        },
+        deviceDetails: {
+          ipAddress: "10.2.57.122" // ⚠️ Lo ideal es obtener IP real del cliente
+        },
+        billingAddress: {
+          firstName: "John",
+          lastName: "Smith",
+          email: "SCTest2@gmail.com",
+          country: "US"
+        },
+        userDetails: {
+          firstName: "John",
+          lastName: "Smith",
+          email: "SCTest2@gmail.com",
+          country: "US"
+        },
+        timeStamp: timestamp,
+        checksum: checksumPayment
       })
     });
 
@@ -83,14 +112,15 @@ export async function handler(event) {
       };
     }
 
-    // 5️⃣ Extraer transactionBankId del redirectUrl
-    const transactionBankId = paymentData.paymentOption.redirectUrl.match(/orderId=([^;]+)/)[1];
-
+    // ===============================
+    // 4️⃣ Devolver URL de redirección
+    // ===============================
     return {
       statusCode: 200,
-      body: JSON.stringify({ redirectUrl: paymentData.paymentOption.redirectUrl })
+      body: JSON.stringify({
+        redirectUrl: paymentData.paymentOption?.redirectUrl || null
+      })
     };
-
 
   } catch (error) {
     return {

@@ -88,8 +88,9 @@ export async function handler(event) {
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ transactionBankId })
+      body: JSON.stringify({ redirectUrl: paymentData.paymentOption.redirectUrl })
     };
+
 
   } catch (error) {
     return {

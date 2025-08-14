@@ -11,30 +11,24 @@
     <body>
         <div id="paypal-button-container"></div>
     <script>
-        paypal.Buttons({
-  createOrder: function () {
+paypal.Buttons({
+  createOrder: function(data, actions) {
     return fetch("/.netlify/functions/create-nuvei-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ amount: 100, currency: "USD" })
     })
     .then(res => res.json())
-    .then(data => data.transactionBankId);
-  },
-
-  onApprove: function () {
-    return fetch("https://test.safecharge.com/APMNotificationGateway/ApmConnectorNotify/Connector/64/727", {
-      method: "POST"
-    })
-    .then(res => res.text())
-    .then(result => console.log("Notificación enviada a Nuvei:", result))
-    .catch(err => console.error("Error en onApprove:", err));
-  },
-
-  onError: function (err) {
-    console.error("PayPal error", err);
+    .then(data => {
+      if (data.redirectUrl) {
+        window.location.href = data.redirectUrl; // Redirige a Nuvei/PayPal
+        return; // No devuelvas nada a PayPal
+      }
+      throw new Error("No se obtuvo redirectUrl de Nuvei");
+    });
   }
 }).render('#paypal-button-container');
+
 
 
     </script>

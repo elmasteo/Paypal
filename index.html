@@ -21,7 +21,8 @@ paypal.Buttons({
     .then(data => {
       if (data.redirectUrl) {
         //window.location.href = data.redirectUrl; // Redirige a Nuvei/PayPal
-        //return; // No devuelvas nada a PayPal
+        //return ; // No devuelvas nada a PayPal
+        return data.redirectUrl;
       }
       throw new Error("No se obtuvo redirectUrl de Nuvei");
     });

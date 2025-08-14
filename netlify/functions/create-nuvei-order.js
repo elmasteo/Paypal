@@ -1,5 +1,5 @@
-const fetch = require('node-fetch');
-import CryptoJS from "crypto-js";
+const fetch = require("node-fetch");
+const CryptoJS = require("crypto-js");
 
 export async function handler(event) {
   if (event.httpMethod !== "POST") {

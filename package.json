@@ -1,0 +1,24 @@
+{
+  "name": "paypal",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elmasteo/Paypal.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/elmasteo/Paypal/issues"
+  },
+  "homepage": "https://github.com/elmasteo/Paypal#readme",
+  "description": "",
+  "dependencies": {
+    "crypto-js": "^4.2.0",
+    "node-fetch": "^3.3.2"
+  }
+}

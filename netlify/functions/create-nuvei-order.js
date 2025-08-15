@@ -21,7 +21,7 @@ module.exports.handler = async function(event) {
       (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
     );
 
-    const userTokenId = uuid();
+    
 
     function padZero(v) { return v.toString().padStart(2, "0"); }
 
@@ -55,6 +55,8 @@ module.exports.handler = async function(event) {
     const checksumPayment = CryptoJS.SHA256(
       merchantId + merchantSiteId + clientRequestId + amount.toString() + currency + timestamp + merchantSecretKey
     ).toString();
+
+    const userTokenId = uuid();
 
     const paymentResp = await fetch("https://ppp-test.safecharge.com/ppp/api/payment.do", {
       method: "POST",

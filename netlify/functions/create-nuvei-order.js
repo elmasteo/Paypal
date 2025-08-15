@@ -17,6 +17,11 @@ module.exports.handler = async function(event) {
     const merchantId = process.env.NUVEI_MERCHANT_ID;
     const merchantSiteId = process.env.NUVEI_MERCHANT_SITE_ID;
     const merchantSecretKey = process.env.NUVEI_MERCHANT_SECRET_KEY;
+    const uuid = () => ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+      (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    );
+
+    const userTokenId = uuid();
 
     function padZero(v) { return v.toString().padStart(2, "0"); }
 
@@ -61,7 +66,7 @@ module.exports.handler = async function(event) {
         clientRequestId,
         amount,
         currency,
-        userTokenId: "testUser123",
+        userTokenId,
         clientUniqueId: "uniqueClient123",
         paymentOption: { alternativePaymentMethod: { paymentMethod: "apmgw_expresscheckout" } },
         deviceDetails: { ipAddress: "10.2.57.122" },

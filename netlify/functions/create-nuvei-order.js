@@ -74,7 +74,6 @@ module.exports.handler = async function (event) {
         clientRequestId +
         amount.toString() +
         currency +
-        userTokenId +
         timestamp +
         merchantSecretKey
     ).toString();
